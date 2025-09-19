@@ -1,13 +1,31 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-function getEnvVar(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    console.error("[supabase] Missing required environment variable", { name });
-    throw new Error(`Missing required environment variable: ${name}`);
+function getEnvVar(primaryName: string, fallbackName?: string): string {
+  const primaryValue = process.env[primaryName];
+  if (primaryValue) {
+    return primaryValue;
   }
-  return value;
+
+  if (fallbackName) {
+    const fallbackValue = process.env[fallbackName];
+    if (fallbackValue) {
+      console.log("[supabase] Using fallback environment variable", {
+        requested: primaryName,
+        fallback: fallbackName,
+      });
+      return fallbackValue;
+    }
+  }
+
+  console.error("[supabase] Missing required environment variable", {
+    primaryName,
+    fallbackName,
+  });
+  const expectedNames = fallbackName
+    ? `${primaryName} (or ${fallbackName})`
+    : primaryName;
+  throw new Error(`Missing required environment variable: ${expectedNames}`);
 }
 
 export function createClient() {
@@ -16,8 +34,11 @@ export function createClient() {
     hasCookieStore: Boolean(cookieStore),
   });
 
-  const supabaseUrl = getEnvVar("NEXT_PUBLIC_SUPABASE_URL");
-  const supabaseAnonKey = getEnvVar("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  const supabaseUrl = getEnvVar("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL");
+  const supabaseAnonKey = getEnvVar(
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_ANON_KEY"
+  );
 
   console.log("[supabase] Environment variables loaded", {
     supabaseUrlLength: supabaseUrl.length,

@@ -69,13 +69,17 @@ export async function startSignup(
     return { status: "error", message: "Birthdays should be in YYYY-MM-DD format." };
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error("Supabase environment variables are missing. Cannot start signup.", {
-      hasUrl: Boolean(supabaseUrl),
-      hasAnonKey: Boolean(supabaseAnonKey),
+      hasPublicUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
+      hasServerUrl: Boolean(process.env.SUPABASE_URL),
+      hasPublicAnonKey: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+      hasServerAnonKey: Boolean(process.env.SUPABASE_ANON_KEY),
     });
     return {
       status: "error",
