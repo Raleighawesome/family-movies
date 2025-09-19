@@ -25,7 +25,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {user ? (
                 <span className="badge">{user.email ?? "Signed in"}</span>
               ) : (
-                <Link href="/login">Sign in</Link>
+                <>
+                  <Link href="/login">Sign in</Link>
+                  <Link href="/signup">Sign up</Link>
+                </>
               )}
             </nav>
           </header>
