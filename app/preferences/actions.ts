@@ -6,6 +6,7 @@ import { requireActiveHouseholdContext } from "@/lib/households";
 import { DEFAULT_FILTERS } from "@/lib/filters";
 
 const DEFAULT_INTENSITY = 5;
+const DEBUG_PREFIX = "[preferences/actions]";
 
 type ActionResult = { ok: boolean; error?: string };
 
@@ -23,6 +24,22 @@ type BulkRemovePayload = {
   labels: string[];
 };
 
+function debug(message: string, details?: Record<string, unknown>) {
+  if (details) {
+    console.log(`${DEBUG_PREFIX} ${message}`, details);
+  } else {
+    console.log(`${DEBUG_PREFIX} ${message}`);
+  }
+}
+
+function debugError(message: string, details?: Record<string, unknown>) {
+  if (details) {
+    console.error(`${DEBUG_PREFIX} ${message}`, details);
+  } else {
+    console.error(`${DEBUG_PREFIX} ${message}`);
+  }
+}
+
 function revalidate() {
   revalidatePath("/preferences");
   revalidatePath("/");
@@ -39,28 +56,62 @@ function intensityGuard(value: number): number {
 }
 
 export async function updateFilter(payload: UpdatePayload): Promise<ActionResult> {
-  const labelKey = sanitizeLabel(payload.labelKey);
-  if (!labelKey) {
-    return { ok: false, error: "Label is required" };
+  debug("updateFilter invoked", { payload });
+
+  try {
+    const labelKey = sanitizeLabel(payload.labelKey);
+    if (!labelKey) {
+      debugError("updateFilter missing label", { payload });
+      return { ok: false, error: "Label is required" };
+    }
+
+    const { householdId } = await requireActiveHouseholdContext();
+    debug("updateFilter resolved household", { householdId, labelKey });
+
+    const hardNo = Boolean(payload.hardNo);
+    const maxIntensity = hardNo ? 0 : intensityGuard(payload.maxIntensity);
+    debug("updateFilter sanitized values", { householdId, labelKey, hardNo, maxIntensity });
+
+    const supabase = createClient();
+    const response = await supabase
+      .from("household_filter_limits")
+      .upsert(
+        {
+          household_id: householdId,
+          label_key: labelKey,
+          hard_no: hardNo,
+          max_intensity: maxIntensity,
+        },
+        { onConflict: "household_id,label_key" }
+      );
+
+    if (response.error) {
+      debugError("updateFilter supabase error", {
+        message: response.error.message,
+        code: (response.error as { code?: string }).code,
+        details: response.error.details,
+        hint: (response.error as { hint?: string }).hint,
+        status: response.status,
+        statusText: response.statusText,
+      });
+      return { ok: false, error: response.error.message };
+    }
+
+    debug("updateFilter supabase success", {
+      householdId,
+      labelKey,
+      status: response.status,
+      statusText: response.statusText,
+    });
+
+    revalidate();
+    return { ok: true };
+  } catch (cause) {
+    debugError("updateFilter threw", {
+      cause,
+    });
+    return { ok: false, error: cause instanceof Error ? cause.message : "Unable to update filter" };
   }
-
-  const { householdId } = await requireActiveHouseholdContext();
-  const supabase = createClient();
-  const { error } = await supabase
-    .from("household_filter_limits")
-    .upsert({
-      household_id: householdId,
-      label_key: labelKey,
-      hard_no: payload.hardNo,
-      max_intensity: intensityGuard(payload.maxIntensity),
-    }, { onConflict: "household_id,label_key" });
-
-  if (error) {
-    return { ok: false, error: error.message };
-  }
-
-  revalidate();
-  return { ok: true };
 }
 
 export async function addFilters(payload: BulkAddPayload): Promise<ActionResult> {

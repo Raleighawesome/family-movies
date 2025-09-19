@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import styles from "./preferences-panel.module.css";
 import { addFilters, removeFilters, resetFilters, updateFilter } from "@/app/preferences/actions";
 import { DEFAULT_FILTERS, formatFilterLabel } from "@/lib/filters";
@@ -19,6 +19,7 @@ type PreferencesPanelProps = {
 type ToastState = { kind: "success" | "error"; text: string } | null;
 
 const DEFAULT_INTENSITY = 5;
+const DEBUG_PREFIX = "[preferences/panel]";
 const INTENSITY_DESCRIPTORS = [
   "None",
   "Trace",
@@ -65,6 +66,7 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
   const [toast, setToast] = useState<ToastState>(null);
   const [pendingSignature, setPendingSignature] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const lastIntensityRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
     if (pendingSignature) {
@@ -99,14 +101,32 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
     setFilterRows((prev) =>
       prev.map((filter) =>
         filter.labelKey === labelKey
-          ? { ...filter, maxIntensity: Math.min(10, Math.max(1, Math.round(value))) }
+          ? { ...filter, maxIntensity: Math.min(10, Math.max(0, Math.round(value))) }
           : filter
       )
     );
   };
 
   const handleHardNoToggle = (labelKey: string, checked: boolean) => {
-    setFilterRows((prev) => prev.map((filter) => (filter.labelKey === labelKey ? { ...filter, hardNo: checked } : filter)));
+    setFilterRows((prev) =>
+      prev.map((filter) => {
+        if (filter.labelKey !== labelKey) {
+          return filter;
+        }
+
+        if (checked) {
+          const previous = filter.maxIntensity > 0 ? filter.maxIntensity : DEFAULT_INTENSITY;
+          lastIntensityRef.current.set(labelKey, previous);
+          return { ...filter, hardNo: true, maxIntensity: 0 };
+        }
+
+        const fallback = lastIntensityRef.current.get(labelKey);
+        const persisted = persistedFilters.find((item) => item.labelKey === labelKey)?.maxIntensity ?? DEFAULT_INTENSITY;
+        const restored = fallback ?? (persisted > 0 ? persisted : DEFAULT_INTENSITY);
+        lastIntensityRef.current.delete(labelKey);
+        return { ...filter, hardNo: false, maxIntensity: Math.min(10, Math.max(1, Math.round(restored))) };
+      })
+    );
   };
 
   const handleSaveFilter = (labelKey: string) => {
@@ -117,13 +137,21 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
     const fallback = cloneFilters(persistedFilters);
 
     startTransition(async () => {
+      console.log(`${DEBUG_PREFIX} attempting update`, {
+        labelKey,
+        maxIntensity: target.maxIntensity,
+        hardNo: target.hardNo,
+      });
       const result = await updateFilter({
         labelKey: target.labelKey,
         maxIntensity: target.maxIntensity,
         hardNo: target.hardNo,
       });
 
+      console.log(`${DEBUG_PREFIX} update result`, { labelKey, result });
+
       if (!result.ok) {
+        console.error(`${DEBUG_PREFIX} update failed`, { labelKey, error: result.error });
         setFilterRows(fallback);
         setPersistedFilters(fallback);
         setPendingSignature(null);
@@ -311,13 +339,13 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
                   <input
                     id={`intensity-${filter.labelKey}`}
                     type="range"
-                    min={1}
+                    min={0}
                     max={10}
                     step={1}
                     value={filter.maxIntensity}
                     onChange={(event) => handleIntensityChange(filter.labelKey, Number(event.target.value))}
-                    disabled={isPending}
-                    aria-valuemin={1}
+                    disabled={isPending || filter.hardNo}
+                    aria-valuemin={0}
                     aria-valuemax={10}
                     aria-valuenow={filter.maxIntensity}
                     aria-valuetext={describeIntensity(filter.maxIntensity)}
