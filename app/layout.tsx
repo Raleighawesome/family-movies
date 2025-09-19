@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/auth/server";
 import "./globals.css";
 
 export const metadata = { title: "Family Movies" };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = getAuthenticatedUser();
 
   return (
     <html lang="en">

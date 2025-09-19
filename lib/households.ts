@@ -1,3 +1,4 @@
+import { getAuthenticatedUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 
 type RawHouseholdMembership = {
@@ -31,14 +32,14 @@ export type HouseholdMember = {
 };
 
 export async function getActiveHouseholdContext(): Promise<ActiveHouseholdContext | null> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  const authUser = getAuthenticatedUser();
+  if (!authUser) return null;
 
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("household_members")
     .select("id, user_id, display_name, household_id, households(name)")
-    .eq("user_id", user.id)
+    .eq("user_email", authUser.email)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle<RawHouseholdMembership>();
@@ -46,7 +47,7 @@ export async function getActiveHouseholdContext(): Promise<ActiveHouseholdContex
   if (error || !data) return null;
 
   return {
-    user: { id: user.id, email: user.email },
+    user: { id: data.user_id ?? authUser.id, email: authUser.email },
     membershipId: data.id,
     displayName: data.display_name,
     householdId: data.household_id,
