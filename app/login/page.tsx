@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { sendMagicLink } from "./actions";
 
 export default function LoginPage() {
@@ -15,6 +16,9 @@ export default function LoginPage() {
       </form>
       <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
         Check your inbox and open the link on this device.
+      </p>
+      <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.3rem" }}>
+        New here? <Link href="/signup">Create your family account</Link>
       </p>
     </div>
   );
