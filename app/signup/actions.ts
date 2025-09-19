@@ -26,28 +26,46 @@ export async function startSignup(
   _prevState: SignupFormState,
   formData: FormData
 ): Promise<SignupFormState> {
+  const receivedFields = Array.from(formData.keys());
+  console.log("[signup] startSignup invoked", {
+    receivedFields,
+    fieldCount: receivedFields.length,
+  });
+
   const email = normalizeInput(formData.get("email"));
   const profileName = normalizeInput(formData.get("profileName"));
   const householdName = normalizeInput(formData.get("householdName"));
   const birthday = normalizeInput(formData.get("birthday"));
 
+  console.log("[signup] Normalized input", {
+    emailLength: email.length,
+    hasProfileName: Boolean(profileName),
+    householdNameLength: householdName.length,
+    birthdayLength: birthday.length,
+  });
+
   if (!email) {
+    console.warn("[signup] Missing email address");
     return { status: "error", message: "Please enter an email address." };
   }
 
   if (!profileName) {
+    console.warn("[signup] Missing profile name");
     return { status: "error", message: "Let us know the name we should use for your profile." };
   }
 
   if (!householdName) {
+    console.warn("[signup] Missing household name");
     return { status: "error", message: "Choose a household name to get everyone organized." };
   }
 
   if (!birthday) {
+    console.warn("[signup] Missing birthday");
     return { status: "error", message: "We’d love to know your birthday to tailor picks for you." };
   }
 
   if (!isValidDate(birthday)) {
+    console.warn("[signup] Invalid birthday format", { birthdayLength: birthday.length });
     return { status: "error", message: "Birthdays should be in YYYY-MM-DD format." };
   }
 
@@ -66,7 +84,14 @@ export async function startSignup(
   }
 
   try {
+    console.log("[signup] Creating Supabase client", {
+      supabaseUrlLength: supabaseUrl.length,
+      anonKeyLength: supabaseAnonKey.length,
+    });
+
     const supabase = createClient();
+    console.log("[signup] Supabase client created successfully");
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -80,17 +105,27 @@ export async function startSignup(
       },
     });
 
+    console.log("[signup] signInWithOtp response", {
+      hasError: Boolean(error),
+      emailDomain: email.split("@")[1] ?? "unknown",
+    });
+
     if (error) {
       console.error("Supabase failed to send signup magic link", error);
       return { status: "error", message: error.message };
     }
   } catch (error) {
     console.error("Unexpected error while starting signup", error);
+    if (error instanceof Error) {
+      console.error("[signup] Error stack", error.stack);
+    }
     return {
       status: "error",
       message: "We couldn't send the magic link right now. Please try again later.",
     };
   }
+
+  console.log("[signup] Signup flow completed successfully", { emailDomain: email.split("@")[1] ?? "unknown" });
 
   return {
     status: "success",
