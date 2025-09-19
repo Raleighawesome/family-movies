@@ -25,7 +25,7 @@ async function fetchChatHistory(householdId: string): Promise<ChatHistoryRow[]> 
   const supabase = createClient();
   const { data, error } = await supabase
     .from("household_chat_messages")
-    .select("id, created_at, household_id, role, content, metadata")
+    .select("id, created_at, household_id, role, content, metadata, user_id")
     .eq("household_id", householdId)
     .order("created_at", { ascending: true })
     .limit(40);
@@ -97,6 +97,7 @@ export default async function Page() {
     role: row.role,
     content: row.content,
     createdAt: row.created_at,
+    userId: row.user_id,
     recommendations: mapRecommendations(row.metadata ?? null),
   }));
 
