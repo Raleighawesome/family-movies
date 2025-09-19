@@ -1,0 +1,192 @@
+.container {
+  display: grid;
+  gap: 1.6rem;
+  background: var(--surface-1);
+  border-radius: 1.4rem;
+  border: 1px solid var(--surface-border);
+  padding: 1.8rem;
+  box-shadow: 0 20px 36px rgba(4, 6, 12, 0.45);
+  backdrop-filter: blur(18px);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.actionsRow button {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.filtersGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.filterCard {
+  border-radius: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.1rem;
+  background: rgba(12, 17, 28, 0.65);
+  display: grid;
+  gap: 0.85rem;
+}
+
+.filterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.filterTitle {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.rangeRow {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.sliderRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sliderRow output {
+  min-width: 2.2rem;
+  text-align: right;
+  font-weight: 600;
+}
+
+.rangeRow input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.toggleRow input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cardFooter button {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+.bulkBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bulkBar span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.addForm {
+  display: grid;
+  gap: 0.75rem;
+  background: rgba(9, 12, 20, 0.55);
+  border-radius: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.2rem;
+}
+
+.addForm textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.inlineChips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.inlineChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.78rem;
+}
+
+.feedback {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.feedbackError {
+  color: var(--danger);
+}
+
+.feedbackSuccess {
+  color: var(--success);
+}
+
+.emptyState {
+  padding: 1.1rem;
+  border-radius: 0.9rem;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.bulkCheckbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.4rem;
+  }
+}

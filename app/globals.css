@@ -1,0 +1,198 @@
+:root {
+  color-scheme: dark;
+  --gradient-top: #111a2c;
+  --gradient-bottom: #05070f;
+  --surface-1: rgba(14, 19, 31, 0.85);
+  --surface-2: rgba(25, 33, 50, 0.55);
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f4f6fb;
+  --text-muted: #9ca6bf;
+  --accent: #f97316;
+  --accent-soft: rgba(249, 115, 22, 0.15);
+  --success: #34d399;
+  --danger: #f87171;
+  font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Inter", "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  background: radial-gradient(120% 120% at 50% -10%, var(--gradient-top) 0%, var(--gradient-bottom) 80%);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  padding: 1.6rem 2.4rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.app-brand {
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.app-nav a {
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.app-nav a:hover,
+.app-nav a:focus-visible {
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  padding: 0.6rem 1.3rem;
+  background: var(--accent);
+  color: #0c111f;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+  box-shadow: 0 12px 24px rgba(249, 115, 22, 0.25);
+}
+
+button:hover:not(:disabled),
+button:focus-visible:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgba(249, 115, 22, 0.35);
+  outline: none;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+button.secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+button.secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--surface-border);
+  background: rgba(10, 15, 24, 0.65);
+  color: var(--text-primary);
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+}
+
+fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--surface-border);
+  margin: 1.25rem 0;
+}
+
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--surface-border);
+  border-radius: 1.2rem;
+  padding: 1.4rem;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 30px rgba(7, 9, 15, 0.35);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 1.3rem 1.1rem 1rem;
+  }
+
+  .app-main {
+    padding: 0 1.1rem 2.5rem;
+  }
+}
