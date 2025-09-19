@@ -24,6 +24,7 @@ export type ChatHistoryRow = {
   role: "user" | "assistant" | "system";
   content: string;
   metadata: Record<string, unknown> | null;
+  user_id: string | null;
 };
 
 export type HouseholdMemberRow = {
@@ -54,4 +55,5 @@ export type ChatMessage = {
   createdAt: string;
   pending?: boolean;
   recommendations?: RecommendationMovie[];
+  userId?: string | null;
 };
