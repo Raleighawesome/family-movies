@@ -19,9 +19,34 @@ type PreferencesPanelProps = {
 type ToastState = { kind: "success" | "error"; text: string } | null;
 
 const DEFAULT_INTENSITY = 5;
+const INTENSITY_DESCRIPTORS = [
+  "None",
+  "Trace",
+  "Faint",
+  "Soft",
+  "Moderate",
+  "Notable",
+  "Bold",
+  "Strong",
+  "Intense",
+  "No filter",
+] as const;
 
 function cloneFilters(list: FilterView[]): FilterView[] {
   return list.map((item) => ({ ...item }));
+}
+
+function createFilterSignature(list: FilterView[]): string {
+  return list
+    .map((filter) => `${filter.labelKey}::${filter.maxIntensity}::${filter.hardNo ? 1 : 0}`)
+    .sort()
+    .join("|");
+}
+
+function describeIntensity(value: number): string {
+  if (!Number.isFinite(value)) return INTENSITY_DESCRIPTORS[DEFAULT_INTENSITY - 1];
+  const index = Math.min(INTENSITY_DESCRIPTORS.length - 1, Math.max(0, Math.round(value) - 1));
+  return INTENSITY_DESCRIPTORS[index];
 }
 
 function parseInputList(raw: string): string[] {
@@ -38,13 +63,22 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
   const [bulkMode, setBulkMode] = useState(false);
   const [addInput, setAddInput] = useState("");
   const [toast, setToast] = useState<ToastState>(null);
+  const [pendingSignature, setPendingSignature] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
+    if (pendingSignature) {
+      const incomingSignature = createFilterSignature(filters);
+      if (incomingSignature !== pendingSignature) {
+        return;
+      }
+    }
+
     setFilterRows(filters);
     setPersistedFilters(filters);
     setSelectedForRemoval([]);
-  }, [filters]);
+    setPendingSignature(null);
+  }, [filters, pendingSignature]);
 
   useEffect(() => {
     if (!toast) return;
@@ -79,6 +113,8 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
     const snapshot = cloneFilters(filterRows);
     const target = snapshot.find((filter) => filter.labelKey === labelKey);
     if (!target) return;
+    const optimisticSignature = createFilterSignature(snapshot);
+    const fallback = cloneFilters(persistedFilters);
 
     startTransition(async () => {
       const result = await updateFilter({
@@ -88,11 +124,15 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
       });
 
       if (!result.ok) {
-        setFilterRows(cloneFilters(persistedFilters));
+        setFilterRows(fallback);
+        setPersistedFilters(fallback);
+        setPendingSignature(null);
         setToast({ kind: "error", text: result.error ?? "Unable to save filter" });
       } else {
+        setFilterRows(snapshot);
         setPersistedFilters(snapshot);
-        setToast({ kind: "success", text: "Filter updated" });
+        setPendingSignature(optimisticSignature);
+        setToast({ kind: "success", text: `${formatFilterLabel(labelKey)} saved` });
       }
     });
   };
@@ -125,14 +165,19 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
     const snapshot = cloneFilters(filterRows);
     const remaining = snapshot.filter((filter) => !selectedForRemoval.includes(filter.labelKey));
     setFilterRows(remaining);
+    const optimisticSignature = createFilterSignature(remaining);
+    const fallback = snapshot;
 
     startTransition(async () => {
       const result = await removeFilters({ labels: selectedForRemoval });
       if (!result.ok) {
-        setFilterRows(snapshot);
+        setFilterRows(fallback);
+        setPersistedFilters(fallback);
+        setPendingSignature(null);
         setToast({ kind: "error", text: result.error ?? "Unable to remove filters" });
       } else {
         setPersistedFilters(remaining);
+        setPendingSignature(optimisticSignature);
         setToast({ kind: "success", text: "Filters removed" });
       }
       setSelectedForRemoval([]);
@@ -155,14 +200,19 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
     setFilterRows(defaults);
     setSelectedForRemoval([]);
     setBulkMode(false);
+    const optimisticSignature = createFilterSignature(defaults);
+    const fallback = snapshot;
 
     startTransition(async () => {
       const result = await resetFilters();
       if (!result.ok) {
-        setFilterRows(snapshot);
+        setFilterRows(fallback);
+        setPersistedFilters(fallback);
+        setPendingSignature(null);
         setToast({ kind: "error", text: result.error ?? "Unable to reset filters" });
       } else {
         setPersistedFilters(defaults);
+        setPendingSignature(optimisticSignature);
         setToast({ kind: "success", text: "Filters reset to defaults" });
       }
     });
@@ -189,14 +239,18 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
     const optimistic = [...snapshot, ...newRows];
     setFilterRows(optimistic);
     setAddInput("");
+    const optimisticSignature = createFilterSignature(optimistic);
 
     startTransition(async () => {
       const result = await addFilters({ labels: newLabels });
       if (!result.ok) {
         setFilterRows(snapshot);
+        setPersistedFilters(snapshot);
+        setPendingSignature(null);
         setToast({ kind: "error", text: result.error ?? "Unable to add filters" });
       } else {
         setPersistedFilters(optimistic);
+        setPendingSignature(optimisticSignature);
         setToast({ kind: "success", text: "Filters added" });
       }
     });
@@ -218,7 +272,7 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
         <button type="button" className="secondary" onClick={handleReset} disabled={isPending}>
           Reset to defaults
         </button>
-        <span className="badge">Intensity: 1 (low) – 10 (high)</span>
+        <span className="badge">Intensity scale: None → No filter</span>
       </div>
       {bulkMode ? (
         <div className={styles.bulkBar}>
@@ -252,7 +306,7 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
                     <label htmlFor={`intensity-${filter.labelKey}`} style={{ flex: 1 }}>
                       Intensity preference
                     </label>
-                    <output htmlFor={`intensity-${filter.labelKey}`}>{filter.maxIntensity}</output>
+                    <output htmlFor={`intensity-${filter.labelKey}`}>{describeIntensity(filter.maxIntensity)}</output>
                   </div>
                   <input
                     id={`intensity-${filter.labelKey}`}
@@ -263,6 +317,10 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
                     value={filter.maxIntensity}
                     onChange={(event) => handleIntensityChange(filter.labelKey, Number(event.target.value))}
                     disabled={isPending}
+                    aria-valuemin={1}
+                    aria-valuemax={10}
+                    aria-valuenow={filter.maxIntensity}
+                    aria-valuetext={describeIntensity(filter.maxIntensity)}
                   />
                 </div>
                 <div className={styles.toggleRow}>
@@ -318,13 +376,14 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
           Add filters
         </button>
       </div>
+      <p className={styles.feedback}>Changes sync directly to Supabase. Adjustments will inform all future recommendations.</p>
       {toast ? (
-        <p className={`${styles.feedback} ${toast.kind === "error" ? styles.feedbackError : styles.feedbackSuccess}`}>
-          {toast.text}
-        </p>
-      ) : (
-        <p className={styles.feedback}>Changes sync directly to Supabase. Adjustments will inform all future recommendations.</p>
-      )}
+        <div className={styles.toastContainer} aria-live="polite" role="status">
+          <div className={`${styles.toast} ${toast.kind === "error" ? styles.toastError : styles.toastSuccess}`}>
+            {toast.text}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
