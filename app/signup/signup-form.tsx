@@ -42,8 +42,14 @@ export default function SignupForm() {
       </fieldset>
 
       <fieldset style={fieldsetStyle}>
-        <label htmlFor="birthday">Birthday</label>
-        <input id="birthday" name="birthday" type="date" required max={new Date().toISOString().slice(0, 10)} />
+        <label htmlFor="birthdate">Birthday</label>
+        <input
+          id="birthdate"
+          name="birthdate"
+          type="date"
+          required
+          max={new Date().toISOString().slice(0, 10)}
+        />
         <p style={helperStyle}>We use birthdays to tailor age-appropriate picks.</p>
       </fieldset>
 

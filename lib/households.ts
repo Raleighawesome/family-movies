@@ -12,7 +12,7 @@ type RawHouseholdMembership = {
 type RawHouseholdMember = {
   id: string;
   display_name: string | null;
-  birthday: string | null;
+  birthdate: string | null;
   user_email: string | null;
 };
 
@@ -27,7 +27,7 @@ export type ActiveHouseholdContext = {
 export type HouseholdMember = {
   id: string;
   displayName: string | null;
-  birthday: string | null;
+  birthdate: string | null;
   email: string | null;
 };
 
@@ -67,7 +67,7 @@ export async function listHouseholdMembers(householdId: string): Promise<Househo
   const supabase = createClient();
   const { data, error } = await supabase
     .from("household_members")
-    .select("id, display_name, birthday, user_email")
+    .select("id, display_name, birthdate, user_email")
     .eq("household_id", householdId)
     .order("display_name", { ascending: true })
     .returns<RawHouseholdMember[]>();
@@ -83,7 +83,7 @@ export async function listHouseholdMembers(householdId: string): Promise<Househo
   return (data ?? []).map((member) => ({
     id: member.id,
     displayName: member.display_name,
-    birthday: member.birthday,
+    birthdate: member.birthdate,
     email: member.user_email,
   }));
 }

@@ -31,7 +31,7 @@ export type HouseholdMemberRow = {
   id: string;
   household_id: string;
   display_name: string | null;
-  birthday: string | null;
+  birthdate: string | null;
   user_email: string | null;
 };
 
