@@ -51,22 +51,45 @@ export async function startSignup(
     return { status: "error", message: "Birthdays should be in YYYY-MM-DD format." };
   }
 
-  const supabase = createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/auth/callback`,
-      data: {
-        onboarding_profile_name: profileName,
-        onboarding_household_name: householdName,
-        onboarding_birthday: birthday,
-      },
-      shouldCreateUser: true,
-    },
-  });
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (error) {
-    return { status: "error", message: error.message };
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Supabase environment variables are missing. Cannot start signup.", {
+      hasUrl: Boolean(supabaseUrl),
+      hasAnonKey: Boolean(supabaseAnonKey),
+    });
+    return {
+      status: "error",
+      message: "We couldn't send the magic link right now. Please try again later.",
+    };
+  }
+
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/auth/callback`,
+        data: {
+          onboarding_profile_name: profileName,
+          onboarding_household_name: householdName,
+          onboarding_birthday: birthday,
+        },
+        shouldCreateUser: true,
+      },
+    });
+
+    if (error) {
+      console.error("Supabase failed to send signup magic link", error);
+      return { status: "error", message: error.message };
+    }
+  } catch (error) {
+    console.error("Unexpected error while starting signup", error);
+    return {
+      status: "error",
+      message: "We couldn't send the magic link right now. Please try again later.",
+    };
   }
 
   return {
