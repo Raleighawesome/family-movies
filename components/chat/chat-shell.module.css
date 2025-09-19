@@ -1,0 +1,452 @@
+.container {
+  display: grid;
+  gap: 1.6rem;
+}
+
+@media (min-width: 960px) {
+  .container {
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.chatCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.6rem;
+  background: var(--surface-1);
+  border: 1px solid var(--surface-border);
+  border-radius: 1.4rem;
+  box-shadow: 0 18px 30px rgba(5, 7, 12, 0.45);
+  backdrop-filter: blur(16px);
+  min-height: 520px;
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.chatHeaderTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.chatHeaderTitle h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  letter-spacing: 0.02em;
+}
+
+.chatHeaderTitle span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.connectionBadge {
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--success);
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.connectionDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--success);
+}
+
+.messageLog {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.messageScroller {
+  overflow-y: auto;
+  max-height: 60vh;
+  padding-right: 0.4rem;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+@media (min-width: 960px) {
+  .messageScroller {
+    max-height: calc(80vh - 220px);
+  }
+}
+
+.messageGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.messageRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.messageRowUser {
+  justify-content: flex-end;
+}
+
+.messageBubble {
+  max-width: min(540px, 85%);
+  padding: 0.9rem 1.1rem;
+  border-radius: 1.1rem;
+  position: relative;
+  white-space: pre-wrap;
+  line-height: 1.55;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.userBubble {
+  background: var(--accent);
+  color: #091020;
+  border-bottom-right-radius: 0.45rem;
+}
+
+.assistantBubble {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom-left-radius: 0.45rem;
+}
+
+.systemBubble {
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  margin: 0 auto;
+}
+
+.messageTimestamp {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.pendingDotContainer {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.pendingDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  animation: pulse 1.1s ease-in-out infinite;
+}
+
+.pendingDot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.pendingDot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+.recommendations {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.recommendationCard {
+  display: grid;
+  grid-template-columns: 94px 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: rgba(18, 23, 35, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.posterPlaceholder {
+  width: 94px;
+  height: 140px;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.06);
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.posterImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.8rem;
+}
+
+.recommendationMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recommendationMeta h3 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+.recommendationMeta p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.recommendationActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.recommendationActions button {
+  padding: 0.45rem 0.95rem;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.recommendationActions button.secondary {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.recommendationLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+.recommendationLinks a {
+  color: var(--text-muted);
+}
+
+.composer {
+  background: rgba(10, 15, 24, 0.65);
+  border-radius: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+textarea.composerInput {
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.75rem 0.9rem;
+  background: rgba(4, 6, 12, 0.6);
+  color: var(--text-primary);
+}
+
+textarea.composerInput::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.composerActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.quickActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.quickActions button {
+  padding: 0.45rem 0.9rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+.quickActions button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.sidebarCard {
+  background: var(--surface-2);
+  border: 1px solid var(--surface-border);
+  border-radius: 1.4rem;
+  padding: 1.4rem;
+  display: grid;
+  gap: 1rem;
+  backdrop-filter: blur(12px);
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sidebarHeader h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.filterList {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.filterName {
+  font-size: 0.9rem;
+}
+
+.filterIntensity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.hardNoTag {
+  background: rgba(248, 113, 113, 0.18);
+  color: var(--danger);
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.feedback {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.feedbackError {
+  color: var(--danger);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 10, 18, 0.75);
+  backdrop-filter: blur(18px);
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  z-index: 40;
+}
+
+.modalContent {
+  width: min(420px, 100%);
+  background: var(--surface-1);
+  border-radius: 1.4rem;
+  border: 1px solid var(--surface-border);
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  box-shadow: 0 20px 50px rgba(5, 7, 14, 0.6);
+}
+
+.modalContent h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.memberChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.memberChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.78rem;
+}
+
+.memberChip input {
+  width: auto;
+}
+
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: rgba(9, 14, 24, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.8rem 1.1rem;
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  box-shadow: 0 12px 24px rgba(3, 4, 9, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  z-index: 45;
+}
+
+.toastSuccess {
+  border-color: rgba(52, 211, 153, 0.45);
+  color: var(--success);
+}
+
+.toastError {
+  border-color: rgba(248, 113, 113, 0.45);
+  color: var(--danger);
+}
