@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, getUnauthorizedResponseHeaders } from "@/lib/auth/server";
 import { getActiveHouseholdContext } from "@/lib/households";
 
 type BlockPayload = {
@@ -8,10 +8,12 @@ type BlockPayload = {
 };
 
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = getAuthenticatedUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, {
+      status: 401,
+      headers: getUnauthorizedResponseHeaders(),
+    });
   }
 
   let body: BlockPayload;

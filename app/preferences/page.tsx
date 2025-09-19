@@ -1,4 +1,5 @@
 import PreferencesPanel from "@/components/preferences/preferences-panel";
+import { getAuthenticatedUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveHouseholdContext } from "@/lib/households";
 import type { HouseholdFilterLimit } from "@/types/db";
@@ -22,18 +23,18 @@ async function fetchFilters(householdId: string): Promise<HouseholdFilterLimit[]
 }
 
 export default async function PreferencesPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = getAuthenticatedUser();
 
   if (!user) {
     return (
       <section className="card" style={{ maxWidth: 420, margin: "4rem auto" }}>
         <h2 style={{ marginTop: 0 }}>Sign in to manage filters</h2>
         <p style={{ color: "var(--text-muted)" }}>
-          Your household filters live in Supabase. Sign in first so we can load and update them securely.
+          Your household filters live in Supabase. Sign in with the shared credentials{" "}
+          (<code>admin</code> / <code>movies</code>) so we can load and update them securely.
         </p>
         <a href="/login">
-          <button type="button">Go to login</button>
+          <button type="button">View sign-in instructions</button>
         </a>
       </section>
     );

@@ -1,19 +1,21 @@
 "use server";
 
+import { getAuthenticatedUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function logWatch(movieId: string) {
   const supabase = createClient();
 
   // Get session and household membership (for beta, we’ll assume the user’s first household)
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = getAuthenticatedUser();
   if (!user) return { ok: false, error: "Not signed in" };
 
   // Fetch a household the user belongs to
   const { data: hm, error: hmErr } = await supabase
     .from("household_members")
-    .select("household_id,id")
-    .eq("user_id", user.id)
+    .select("household_id,id,user_id")
+    .eq("user_email", user.email)
+    .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
 

@@ -1,6 +1,4 @@
 import Link from "next/link";
-import SignupForm from "./signup-form";
-
 export const metadata = { title: "Join Family Movie Night" };
 
 export default function SignupPage() {
@@ -15,16 +13,21 @@ export default function SignupPage() {
             Welcome
           </p>
         </div>
-        <h1 style={{ margin: 0 }}>Create your family hub</h1>
+        <h1 style={{ margin: 0 }}>Preview mode</h1>
         <p style={{ color: "var(--text-muted)", margin: 0 }}>
-          We’ll email you a secure magic link. Before we do, tell us a bit about who’s watching so we can curate picks
-          that feel just right.
+          Email-based sign-up is temporarily disabled while basic authentication is active. Use the shared credentials
+          {" "}
+          <code>admin</code> / <code>movies</code> to explore the existing household as <code>eriknewby@icloud.com</code>.
         </p>
       </div>
-      <SignupForm />
-      <p style={{ margin: 0, textAlign: "center", fontSize: "0.9rem", color: "var(--text-muted)" }}>
-        Already have an account? <Link href="/login">Sign in</Link>
-      </p>
+      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+        <Link href="/login">
+          <button type="button">View sign-in instructions</button>
+        </Link>
+        <Link href="/">
+          <button type="button" className="secondary">Return to chat</button>
+        </Link>
+      </div>
     </div>
   );
 }

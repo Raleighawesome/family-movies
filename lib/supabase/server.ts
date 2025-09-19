@@ -35,14 +35,18 @@ export function createClient() {
   });
 
   const supabaseUrl = getEnvVar("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL");
-  const supabaseAnonKey = getEnvVar(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "SUPABASE_ANON_KEY"
-  );
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAnonKey =
+    supabaseServiceRoleKey ??
+    getEnvVar(
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_ANON_KEY"
+    );
 
   console.log("[supabase] Environment variables loaded", {
     supabaseUrlLength: supabaseUrl.length,
     anonKeyLength: supabaseAnonKey.length,
+    usingServiceRole: Boolean(supabaseServiceRoleKey),
   });
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {

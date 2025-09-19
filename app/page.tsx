@@ -1,4 +1,5 @@
 import ChatShell from "@/components/chat/chat-shell";
+import { getAuthenticatedUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveHouseholdContext, listHouseholdMembers } from "@/lib/households";
 import type { ChatHistoryRow, HouseholdFilterLimit, RecommendationMovie } from "@/types/db";
@@ -52,18 +53,18 @@ function mapRecommendations(metadata: Record<string, unknown> | null): Recommend
 }
 
 export default async function Page() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = getAuthenticatedUser();
 
   if (!user) {
     return (
       <section className="card" style={{ maxWidth: 420, margin: "4rem auto" }}>
         <h2 style={{ marginTop: 0 }}>Sign in required</h2>
         <p style={{ color: "var(--text-muted)" }}>
-          Sign in with your email to chat with the family movie assistant and manage your filters.
+          Sign in with the shared credentials{" "}(<code>admin</code> / <code>movies</code>) to chat with the family
+          movie assistant and manage your filters.
         </p>
         <a href="/login">
-          <button type="button">Go to login</button>
+          <button type="button">View sign-in instructions</button>
         </a>
       </section>
     );
