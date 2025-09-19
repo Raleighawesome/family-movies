@@ -19,6 +19,7 @@ type PreferencesPanelProps = {
 type ToastState = { kind: "success" | "error"; text: string } | null;
 
 const DEFAULT_INTENSITY = 5;
+const DEBUG_PREFIX = "[preferences/panel]";
 const INTENSITY_DESCRIPTORS = [
   "None",
   "Trace",
@@ -117,13 +118,21 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
     const fallback = cloneFilters(persistedFilters);
 
     startTransition(async () => {
+      console.log(`${DEBUG_PREFIX} attempting update`, {
+        labelKey,
+        maxIntensity: target.maxIntensity,
+        hardNo: target.hardNo,
+      });
       const result = await updateFilter({
         labelKey: target.labelKey,
         maxIntensity: target.maxIntensity,
         hardNo: target.hardNo,
       });
 
+      console.log(`${DEBUG_PREFIX} update result`, { labelKey, result });
+
       if (!result.ok) {
+        console.error(`${DEBUG_PREFIX} update failed`, { labelKey, error: result.error });
         setFilterRows(fallback);
         setPersistedFilters(fallback);
         setPendingSignature(null);
