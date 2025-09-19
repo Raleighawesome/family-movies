@@ -18,13 +18,20 @@ type ChatResponsePayload = {
 
 async function persistMessage(
   supabase: ReturnType<typeof createClient>,
-  payload: { householdId: string; role: "user" | "assistant" | "system"; content: string; metadata?: Record<string, unknown> | null }
+  payload: {
+    householdId: string;
+    role: "user" | "assistant" | "system";
+    content: string;
+    metadata?: Record<string, unknown> | null;
+    userId: string | null;
+  }
 ) {
   const { error } = await supabase.from("household_chat_messages").insert({
     household_id: payload.householdId,
     role: payload.role,
     content: payload.content,
     metadata: payload.metadata ?? null,
+    user_id: payload.userId,
   });
 
   if (error && (error as { code?: string }).code !== "42P01") {
@@ -65,6 +72,7 @@ export async function POST(request: NextRequest) {
     role: "user",
     content: message,
     metadata: { filters: body.filters, history: body.history },
+    userId: context.user.id,
   });
 
   const webhookUrl = process.env.N8N_CHAT_WEBHOOK_URL;
@@ -117,6 +125,7 @@ export async function POST(request: NextRequest) {
     role: "assistant",
     content: responsePayload.message,
     metadata: responsePayload.recommendations ? { recommendations: responsePayload.recommendations } : null,
+    userId: null,
   });
 
   return NextResponse.json(responsePayload);
