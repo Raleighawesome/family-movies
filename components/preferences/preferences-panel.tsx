@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import styles from "./preferences-panel.module.css";
 import { addFilters, removeFilters, resetFilters, updateFilter } from "@/app/preferences/actions";
-import { DEFAULT_FILTERS, formatFilterLabel } from "@/lib/filters";
+import { DEFAULT_FILTERS, formatFilterLabel, normalizeFilterLabelKey } from "@/lib/filters";
 
 type FilterView = {
   labelKey: string;
@@ -53,7 +53,7 @@ function describeIntensity(value: number): string {
 function parseInputList(raw: string): string[] {
   return raw
     .split(/[\n,]+/)
-    .map((entry) => entry.trim())
+    .map((entry) => normalizeFilterLabelKey(entry))
     .filter(Boolean);
 }
 
@@ -254,9 +254,9 @@ export default function PreferencesPanel({ filters, householdName }: Preferences
     }
 
     const snapshot = cloneFilters(filterRows);
-    const existingKeys = new Set(snapshot.map((filter) => filter.labelKey.toLowerCase()));
-    const unique = Array.from(new Map(parsed.map((label) => [label.toLowerCase(), label])).values());
-    const newLabels = unique.filter((label) => !existingKeys.has(label.toLowerCase()));
+    const existingKeys = new Set(snapshot.map((filter) => filter.labelKey));
+    const unique = Array.from(new Set(parsed));
+    const newLabels = unique.filter((label) => !existingKeys.has(label));
 
     if (!newLabels.length) {
       setToast({ kind: "error", text: "Those filters already exist" });
