@@ -34,6 +34,9 @@ dist/
 ehthumbs.db
 Thumbs.db
 
+# AI
+WARP.md
+
 # Logs
 logs/
 *.log
