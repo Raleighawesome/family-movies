@@ -139,12 +139,14 @@ export async function addFilters(payload: BulkAddPayload): Promise<ActionResult>
   }
 
   const unique = Array.from(
-    normalized.reduce((map, entry) => {
-      if (!map.has(entry.key)) {
-        map.set(entry.key, entry);
-      }
-      return map;
-    }, new Map<string, NormalizedFilterLabel>())
+    normalized
+      .reduce((map, entry) => {
+        if (!map.has(entry.key)) {
+          map.set(entry.key, entry);
+        }
+        return map;
+      }, new Map<string, NormalizedFilterLabel>())
+      .values()
   );
   const { householdId } = await requireActiveHouseholdContext();
   const supabase = createClient();
