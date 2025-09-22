@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveHouseholdContext } from "@/lib/households";
-import { DEFAULT_FILTERS, normalizeFilterLabelKey } from "@/lib/filters";
+import {
+  DEFAULT_FILTERS,
+  formatFilterLabel,
+  normalizeFilterLabelKey,
+} from "@/lib/filters";
 
 const DEFAULT_INTENSITY = 5;
 const DEBUG_PREFIX = "[preferences/actions]";
@@ -22,6 +26,12 @@ type BulkAddPayload = {
 
 type BulkRemovePayload = {
   labels: string[];
+};
+
+type NormalizedFilterLabel = {
+  key: string;
+  rawLabel: string;
+  dictionaryLabel: string;
 };
 
 function debug(message: string, details?: Record<string, unknown>) {
@@ -111,38 +121,76 @@ export async function updateFilter(payload: UpdatePayload): Promise<ActionResult
 }
 
 export async function addFilters(payload: BulkAddPayload): Promise<ActionResult> {
-  const labels = (payload.labels ?? [])
-    .map(normalizeFilterLabelKey)
-    .filter(Boolean);
-  if (!labels.length) {
+  const normalized = (payload.labels ?? [])
+    .map((rawLabel): NormalizedFilterLabel | null => {
+      const normalizedKey = normalizeFilterLabelKey(rawLabel);
+      if (!normalizedKey) return null;
+      const cleanedLabel = rawLabel.trim().replace(/\s+/g, " ");
+      return {
+        key: normalizedKey,
+        rawLabel,
+        dictionaryLabel: cleanedLabel || formatFilterLabel(normalizedKey),
+      };
+    })
+    .filter((value): value is NormalizedFilterLabel => value !== null);
+
+  if (!normalized.length) {
     return { ok: false, error: "Add at least one filter" };
   }
 
-  const unique = Array.from(new Set(labels));
+  const unique = Array.from(
+    normalized
+      .reduce((map, entry) => {
+        if (!map.has(entry.key)) {
+          map.set(entry.key, entry);
+        }
+        return map;
+      }, new Map<string, NormalizedFilterLabel>())
+      .values()
+  );
   const { householdId } = await requireActiveHouseholdContext();
   const supabase = createClient();
 
-  const { data: existingData } = await supabase
+  const { data: existingData, error: existingError } = await supabase
     .from("household_filter_limits")
     .select("label_key")
     .eq("household_id", householdId);
 
+  if (existingError) {
+    return { ok: false, error: existingError.message };
+  }
+
   const existing = new Set((existingData ?? []).map((row: { label_key: string }) => row.label_key.toLowerCase()));
-  const rows = unique
-    .filter((label) => !existing.has(label.toLowerCase()))
-    .map((label) => {
-      const preset = DEFAULT_FILTERS.find((filter) => filter.labelKey.toLowerCase() === label.toLowerCase());
+  const entriesToInsert = unique.filter((entry) => !existing.has(entry.key.toLowerCase()));
+
+  if (!entriesToInsert.length) {
+    return { ok: false, error: "Those filters already exist" };
+  }
+
+  const dictionaryRows = entriesToInsert.map((entry) => ({
+    key: entry.key,
+    label: entry.dictionaryLabel,
+  }));
+
+  // household_filter_limits.label_key references content_label_dictionary.key,
+  // so ensure the dictionary entry exists before inserting household rows.
+  const { error: dictionaryError } = await supabase
+    .from("content_label_dictionary")
+    .upsert(dictionaryRows, { onConflict: "key" });
+
+  if (dictionaryError) {
+    return { ok: false, error: dictionaryError.message };
+  }
+
+  const rows = entriesToInsert.map((entry) => {
+    const preset = DEFAULT_FILTERS.find((filter) => filter.labelKey.toLowerCase() === entry.key.toLowerCase());
       return {
         household_id: householdId,
-        label_key: label,
+        label_key: entry.key,
         hard_no: false,
         max_intensity: preset?.defaultIntensity ?? DEFAULT_INTENSITY,
       };
     });
-
-  if (!rows.length) {
-    return { ok: false, error: "Those filters already exist" };
-  }
 
   const { error } = await supabase.from("household_filter_limits").insert(rows);
   if (error) {
