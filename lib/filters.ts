@@ -13,12 +13,26 @@ export const DEFAULT_FILTERS: FilterDefinition[] = [
   { labelKey: "violence", label: "Violence", defaultIntensity: 5 },
 ];
 
+function normalizeLabelSegments(labelKey: string): string[] {
+  return labelKey
+    .split(/[_\-]+/)
+    .filter(Boolean);
+}
+
+export function normalizeFilterLabelKey(rawLabel: string): string {
+  const normalized = rawLabel
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return normalized;
+}
+
 export function formatFilterLabel(labelKey: string): string {
   const preset = DEFAULT_FILTERS.find((f) => f.labelKey === labelKey);
   if (preset) return preset.label;
-  return labelKey
-    .split(/[_\-]+/)
-    .filter(Boolean)
+  return normalizeLabelSegments(labelKey)
     .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
     .join(" ");
 }

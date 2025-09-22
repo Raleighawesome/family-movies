@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveHouseholdContext } from "@/lib/households";
-import { DEFAULT_FILTERS } from "@/lib/filters";
+import { DEFAULT_FILTERS, normalizeFilterLabelKey } from "@/lib/filters";
 
 const DEFAULT_INTENSITY = 5;
 const DEBUG_PREFIX = "[preferences/actions]";
@@ -45,10 +45,6 @@ function revalidate() {
   revalidatePath("/");
 }
 
-function sanitizeLabel(label: string): string {
-  return label.trim();
-}
-
 function intensityGuard(value: number): number {
   if (!Number.isFinite(value)) return DEFAULT_INTENSITY;
   const rounded = Math.round(value);
@@ -59,7 +55,7 @@ export async function updateFilter(payload: UpdatePayload): Promise<ActionResult
   debug("updateFilter invoked", { payload });
 
   try {
-    const labelKey = sanitizeLabel(payload.labelKey);
+    const labelKey = normalizeFilterLabelKey(payload.labelKey);
     if (!labelKey) {
       debugError("updateFilter missing label", { payload });
       return { ok: false, error: "Label is required" };
@@ -115,12 +111,14 @@ export async function updateFilter(payload: UpdatePayload): Promise<ActionResult
 }
 
 export async function addFilters(payload: BulkAddPayload): Promise<ActionResult> {
-  const labels = (payload.labels ?? []).map(sanitizeLabel).filter(Boolean);
+  const labels = (payload.labels ?? [])
+    .map(normalizeFilterLabelKey)
+    .filter(Boolean);
   if (!labels.length) {
     return { ok: false, error: "Add at least one filter" };
   }
 
-  const unique = Array.from(new Map(labels.map((label) => [label.toLowerCase(), label])).values());
+  const unique = Array.from(new Set(labels));
   const { householdId } = await requireActiveHouseholdContext();
   const supabase = createClient();
 
@@ -156,7 +154,9 @@ export async function addFilters(payload: BulkAddPayload): Promise<ActionResult>
 }
 
 export async function removeFilters(payload: BulkRemovePayload): Promise<ActionResult> {
-  const labels = (payload.labels ?? []).map(sanitizeLabel).filter(Boolean);
+  const labels = (payload.labels ?? [])
+    .map(normalizeFilterLabelKey)
+    .filter(Boolean);
   if (!labels.length) {
     return { ok: false, error: "Select at least one filter to remove" };
   }
